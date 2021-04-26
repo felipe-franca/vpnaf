@@ -81,9 +81,7 @@ ExtractUserIpPass() {
     exportPass $GAR
 
     if [ -z "$ARGS2" ]; then
-
         ARGS2="root"
-
     fi
 }
 
