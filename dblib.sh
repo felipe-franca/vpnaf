@@ -37,7 +37,7 @@ deleteLine() {
 
 #insere nova linha $* na base de dados / chamar com -i
 insertLine() {
-    if [ "$1" -o "$2" ]; then
+    if [ "$1" -a "$2" ]; then
         if haveKey "$1"; then
             echo "A chave '$1' ja esta cadastrada na base de dados."
             return 1;
