@@ -32,7 +32,7 @@ source $HOME/vpn/dblib.sh || {
 
 # Valida qual operacao sera realizada. se não atender segue o fluxo.
 case "$ARGS1" in
-    -i)
+    "-i")
         if [ "$2" -a "$3" ]; then
             echo -e "Adding vpn '$2' with pass '$3'."
             insertLine "$2" "$3"
@@ -43,7 +43,7 @@ case "$ARGS1" in
         fi
     ;;
 
-    -d)
+    "-d")
         if [ "$2" ]; then
             echo "Removing vpn '$2'."
             deleteLine $2
