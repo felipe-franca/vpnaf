@@ -18,15 +18,49 @@
 #                                                              #
 ################################################################
 
-ARGS="$1"
-USER="$2"
+ARGS1="$1"
+ARGS2="$2"
+ARGS3="$3"
 STARTCOLOR="\e[1;32m"
 ENDCOLOR="\e[0m"
 
+# adiciona a lib dblib ( gerenciador do banco textual )
+source $HOME/vpn/dblib.sh || {
+    echo -e "Erro no gerenciador ou arquivo não encotrado.\n"
+    return 1;
+}
+
+# Valida qual operacao sera realizada. se não atender segue o fluxo.
+case "$ARGS1" in
+    -i)
+        if [ "$2" -a "$3" ]; then
+            echo -e "Adding vpn '$2' with pass '$3'."
+            insertLine "$2" "$3"
+            exit 0;
+        else
+            echo "Missing data."
+            exit 1;
+        fi
+    ;;
+
+    -d)
+        if [ "$2" ]; then
+            echo "Removing vpn '$2'."
+            deleteLine $2
+            exit 0;
+        else
+            echo "Missing data."
+            exit 1;
+        fi
+    ;;
+esac
+
+# declarar array com as vpn's encontradas por intermedio do parametro passado.
+# variavel $IFS alterada para pode incluir espaças nas intacias o array.
 OLDIFS="$IFS"
 IFS="$"
 
-declare LIST=($(grep "$ARGS" /etc/openvpn/openvpn* |\
+declare LIST=($(grep "$ARGS1" /etc/openvpn/openvpn-* |\
         awk -F ':|,' '{print $2 " " $3}' |\
         grep -E "^(([0-9]{1,3}.){3})" |\
         cat -A)
@@ -34,22 +68,21 @@ declare LIST=($(grep "$ARGS" /etc/openvpn/openvpn* |\
 
 IFS="$OLDIFS"
 
+# função para extrai ip e unidade do array
 ExtractUserIpPass() {
-
-    IP=$(
-        echo "$1" | \
+    IP=$( echo "$1" | \
         awk '{print $1}'
     )
 
-    GAR=$(
-        echo "$1" | \
+    GAR=$( echo "$1" | \
         awk '{print $2}'
     )
-    PASSWORD=$($HOME/vpn/dblib.sh $GAR)
+    
+    exportPass $GAR
 
-    if [ -z "$USER" ]; then
+    if [ -z "$ARGS2" ]; then
 
-        USER="root"
+        ARGS2="root"
 
     fi
 }
@@ -99,4 +132,4 @@ else
     ExtractUserIpPass "${LIST[$INDEX]}"
 fi
 
-$HOME/vpn/expect.exp $USER $IP $PASSWORD
+$HOME/vpn/expect.exp $ARGS2 $IP $PASSWORDKEY

@@ -9,7 +9,7 @@ DATABASE="$HOME/vpn/garages.csv"
 [ "$DATABASE" ] || {
     echo "Base de dados nao encontrado."
 
-    return 1;
+    exit 1;
 }
 
 #Verifica se a chave $1(parametro passado) esta na base de dados;
@@ -19,16 +19,14 @@ haveKey() {
 
 #exporta o password / chamada default
 exportPass(){
-    haveKey "$1" || return # nao retorna nada caso não ache e exit code = 1;
+    haveKey "$1" || return 1; # nao retorna nada caso não ache e exit code = 1;
     PASSWORDKEY=$(grep -i "$1" "$DATABASE" |\
                 cut -d "$SEP" -f2)
-
-    echo "$PASSWORDKEY";
 }
 
 # apaga registro no banco textual / chamar com -d
 deleteLine() {
-    haveKey "$1" || return # nao retorna nada caso não ache e exit code = 1;
+    haveKey "$1" || return 1; # nao retorna nada caso não ache e exit code = 1;
     grep -i -v "$1$SEP" "$DATABASE" > "$TEMP"
     mv --force "$TEMP" "$DATABASE"
 
