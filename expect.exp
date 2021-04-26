@@ -1,0 +1,25 @@
+#!/usr/bin/expect -f
+
+set timeout 15
+set user [lindex $argv 0]
+set ip [lindex $argv 1]
+set password [lindex $argv 2]
+set prompt "\[>%\s\$#\] "
+
+send_user "connecting to $ip on user $user\n"
+spawn ssh $user@$ip
+
+expect {
+	"(yes/no)? " { 
+		send_user " (detected unknown host key - accepting)\n"
+		send "yes\n"
+		send_user " (continuing expect loop)\n"
+		exp_continue
+	}
+	"password:" { 
+		send_user " (detected password login prompt - sending password)\n"
+		send "$password\n"	
+	}
+}
+
+interact
