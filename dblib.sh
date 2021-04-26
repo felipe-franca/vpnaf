@@ -1,70 +1,54 @@
 #!/bin/bash
 
+# lib de controle do banco de dados textual
+
 SEP=";"
 TEMP=temp.$$
 DATABASE="$HOME/vpn/garages.csv"
 
 [ "$DATABASE" ] || {
+    echo "Base de dados nao encontrado."
 
-    echo "Base de dados nao encontrada. Use a variavel DATABASE."
-
-    return 1
+    return 1;
 }
 
-#Verifica se a chave $1 esta no DATABASE
-
+#Verifica se a chave $1(parametro passado) esta na base de dados;
 haveKey() {
-
-    KEYWORD=$(grep -i "$1" "$DATABASE" |\
-        cut -d "$SEP" -f1)
+    grep -iq "$1" "$DATABASE" # usar -q para quiet retornara true or false
 }
 
-#exporta o password
-exportKey(){
-
+#exporta o password / chamada default
+exportPass(){
+    haveKey "$1" || return # nao retorna nada caso não ache e exit code = 1;
     PASSWORDKEY=$(grep -i "$1" "$DATABASE" |\
-        cut -d "$SEP" -f2)
+                cut -d "$SEP" -f2)
+
     echo "$PASSWORDKEY";
 }
 
+# apaga registro no banco textual / chamar com -d
 deleteLine() {
+    haveKey "$1" || return # nao retorna nada caso não ache e exit code = 1;
+    grep -i -v "$1$SEP" "$DATABASE" > "$TEMP"
+    mv --force "$TEMP" "$DATABASE"
 
-    haveKey "$1" || return
-    grep -i -v "$1$SEP" "$DATABASE" >"$TEMP"
-    mv "$TEMP" "$DATABASE"
-
-    echo "Registro '$1' foi apagado"
+    echo "Registro '$1' foi apagado";
 }
 
-#insere nova linha $* no DATABASE
-
+#insere nova linha $* na base de dados / chamar com -i
 insertLine() {
-
-    local key=$(echo "$2")
-
-    if haveKey "$key"; then
-        echo "A chave '$key' ja esta cadastrada no DATABASE"
-        return 1
+    if [ "$1" -o "$2" ]; then
+        if haveKey "$1"; then
+            echo "A chave '$1' ja esta cadastrada na base de dados."
+            return 1;
+        else
+            echo "$1$SEP$2" >> "$DATABASE"
+            echo "Registro de '$1' cadastrada com sucesso"
+        fi
     else
-
-         echo "$2$SEP$3" >>"$DATABASE"
-        echo "Registro de '$key' cadastrada com sucesso"
+        echo "Dados ausentes."
+        return 1;
     fi
 
-    return 0
+    return 0;
 }
-
-
-if [ -z "$*" ] && [ "$1" = "-i" ]; then
-
-    insertLine $2 $3;
-
-elif [ -z "$*" ] && [ "$1" = "-d" ]; then
-
-    deleteLine $2;
-
-else
-
-  exportKey $1;
-
-fi
